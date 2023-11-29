@@ -30,6 +30,16 @@ async function run() {
     // Connect the client to the server	(optional starting in v4.7)
     // await client.connect();
 
+    const serviceCollection = client.db("cypherTechDB").collection("services")
+
+
+
+    // service related
+    app.get('/services', async(req, res)=> {
+        const result = await serviceCollection.find().toArray()
+        res.send(result)
+    })
+
 
 
     // Send a ping to confirm a successful connection
