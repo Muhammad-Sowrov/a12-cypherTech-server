@@ -13,7 +13,7 @@ app.use(express.json());
 
 
 // mongoDB
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.xz3kocr.mongodb.net/?retryWrites=true&w=majority`;
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
@@ -34,10 +34,18 @@ async function run() {
     const reviewCollection = client.db("cypherTechDB").collection("testimonials");
     const userCollection = client.db("cypherTechDB").collection("users");
     const dummyCollection = client.db("cypherTechDB").collection("dummy");
+    const workSheetCollection = client.db("cypherTechDB").collection("sheets");
 
+
+
+    // work-sheet 
+    app.post('/work-sheet', async(req, res)=> {
+        const data = req.body;
+        const result = await workSheetCollection.insertOne(data)
+        res.send(result)
+    })
 
     // dummy location
-
     app.get('/dummy', async(req, res)=> {
         const result = await dummyCollection.find().toArray()
         res.send(result)
@@ -67,13 +75,35 @@ async function run() {
         })
         
       }
-  
+    //   HR
+    app.patch('/users/hr/:id', async(req, res)=> {
+        const id = req.params.id;
+        const filter = {_id: new ObjectId(id)};
+        const updatedDoc = {
+            $set: {
+                role: 'HR'
+            }
+        }
+        const result = await userCollection.updateOne(filter, updatedDoc)
+        res.send(result)
+    })
+    //   Employee
+    app.patch('/users/em/:id', async(req, res)=> {
+        const id = req.params.id;
+        const filter = {_id: new ObjectId(id)};
+        const updatedDoc = {
+            $set: {
+                role: 'Employee'
+            }
+        }
+        const result = await userCollection.updateOne(filter, updatedDoc)
+        res.send(result)
+    })
+     
 
     // user related 
-
     // make users secure
-    //  verifyToken,
-    app.get('/users', async(req, res)=>{
+    app.get('/users',verifyToken, async(req, res)=>{
         const result = await userCollection.find().toArray()
         res.send(result)
     })
