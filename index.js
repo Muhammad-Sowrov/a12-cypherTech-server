@@ -38,18 +38,7 @@ async function run() {
 
 
 
-    // work-sheet 
-    app.post('/work-sheet', async(req, res)=> {
-        const data = req.body;
-        const result = await workSheetCollection.insertOne(data)
-        res.send(result)
-    })
-
-    // dummy location
-    app.get('/dummy', async(req, res)=> {
-        const result = await dummyCollection.find().toArray()
-        res.send(result)
-    })
+    
 
 
     // jwt related
@@ -75,6 +64,51 @@ async function run() {
         })
         
       }
+
+      // work-sheet 
+    app.get('/work-sheet', async(req, res)=> {
+        const result = await workSheetCollection.find().toArray();
+        res.send(result)
+    })
+
+
+    app.post('/work-sheet', async(req, res)=> {
+        const data = req.body;
+        const result = await workSheetCollection.insertOne(data)
+        res.send(result)
+    })
+
+    // dummy location
+    app.get('/dummy', async(req, res)=> {
+        const result = await dummyCollection.find().toArray()
+        res.send(result)
+    })
+
+    //   verify 
+    app.patch('/users/verify/:id', async(req, res)=> {
+        const id = req.params.id;
+        const filter = {_id: new ObjectId(id)};
+        const updatedDoc = {
+            $set: {
+                isVerify: true
+            }
+        }
+        const result = await userCollection.updateOne(filter, updatedDoc)
+        res.send(result)
+    })
+    // unVerify
+    app.patch('/users/unVerify/:id', async(req, res)=> {
+        const id = req.params.id;
+        const filter = {_id: new ObjectId(id)};
+        const updatedDoc = {
+            $set: {
+                isVerify: false
+            }
+        }
+        const result = await userCollection.updateOne(filter, updatedDoc)
+        res.send(result)
+    })
+
     //   HR
     app.patch('/users/hr/:id', async(req, res)=> {
         const id = req.params.id;
