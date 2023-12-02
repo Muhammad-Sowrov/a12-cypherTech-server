@@ -2,8 +2,9 @@ const express = require('express');
 require('dotenv').config();
 const cors = require('cors');
 const jwt = require('jsonwebtoken');
-const app = express();
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 
+const app = express();
 const port = process.env.PORT || 5000;
 
 //middleware
@@ -13,7 +14,7 @@ app.use(express.json());
 
 
 // mongoDB
-const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
+
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.xz3kocr.mongodb.net/?retryWrites=true&w=majority`;
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
@@ -37,10 +38,6 @@ async function run() {
     const workSheetCollection = client.db("cypherTechDB").collection("sheets");
 
 
-
-    
-
-
     // jwt related
     app.post('/jwt', async(req, res)=> {
         const user = req.body;
@@ -50,7 +47,7 @@ async function run() {
 
     // middlewares 
     const verifyToken = (req, res, next) => {
-        console.log('inside verify token',req.headers.authorization);
+        // console.log('inside verify token',req.headers.authorization);
         if (!req.headers.authorization) {
           return res.status(401).send({message: 'Forbidden Access'})
         }
@@ -65,14 +62,47 @@ async function run() {
         
       }
 
-      // work-sheet 
-    app.get('/work-sheet', async(req, res)=> {
+    //   admin 
+    app.get('/users/admin/:email',verifyToken, async (req, res) => {
+        const email = req.params.email;
+  
+        if (email !== req.decoded.email) {
+          return res.status(403).send({ message: 'forbidden access' })
+        }
+  
+        const query = { email: email };
+        const user = await userCollection.findOne(query);
+        let admin = false;
+        if (user) {
+          admin = user?.role === 'Admin';
+        }
+        res.send({ admin });
+      })
+    //   is hr
+    app.get('/users/hr/:email',verifyToken, async (req, res) => {
+        const email = req.params.email;
+  
+        if (email !== req.decoded.email) {
+          return res.status(403).send({ message: 'forbidden access' })
+        }
+  
+        const query = { email: email };
+        const user = await userCollection.findOne(query);
+        let hr = false;
+        if (user) {
+          hr = user?.role === 'HR';
+        }
+        res.send({ hr });
+      })
+
+    // work-sheet 
+    app.get('/work-sheet',verifyToken, async(req, res)=> {
         const result = await workSheetCollection.find().toArray();
         res.send(result)
     })
 
 
-    app.post('/work-sheet', async(req, res)=> {
+    app.post('/work-sheet',verifyToken, async(req, res)=> {
         const data = req.body;
         const result = await workSheetCollection.insertOne(data)
         res.send(result)
